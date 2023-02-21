@@ -29,7 +29,7 @@ export default function Menu({ navigation }) {
         <Button title="icon"></Button>
           <Logo height={150}/>
         
-        <Text>FEMs de hoje: /3</Text>
+        <Text style={{fontFamily: "work-sans-bold"}}>FEMs de hoje: /3</Text>
 
         <View style={styles.mainButtonsContainer}>
           <Button title="Continue" onPress={pressHandler}></Button>
