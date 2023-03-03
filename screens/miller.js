@@ -6,8 +6,6 @@ import Spin from './../assets/spin.svg'
 import Spin from './../assets/spin.svg'
 import React, { useState, useEffect, useRef } from 'react'; */
 
-
-
 export default function Miller({ navigation }) {
 
   function notAllowed() {
@@ -17,31 +15,7 @@ export default function Miller({ navigation }) {
   function pressHandler() {
     navigation.navigate("Feedback");
   }
-/* 
-    
 
-    return (
-        <View style={styles.container}>
-        <View>
-        <Text>{countdown}</Text>
-        <Button title="Start recording" onPress={startRecording} />
-        <Button title="Stop recording" onPress={stopRecording} disabled={!recording} />
-      </View>
-
-          <ImageBackground source={require('./../assets/miller.png')} resizeMode="cover" style={styles.image}>
-            <Spin
-            style={[styles.spinner, soundActive ? styles.rotatingViewActive : null]}
-            ref={rotatingViewRef}></Spin>
-            
-           </ImageBackground>
-           
-            
-
-        </View>
-    );
-  }
-  
-  */
     const [recording, setRecording] = useState(null);
     const [sound, setSound] = useState(null);
     const [rotation, setRotation] = useState(0);
@@ -51,6 +25,7 @@ export default function Miller({ navigation }) {
     useEffect(() => {
       return () => {
         if (sound) {
+          //unload the sound from memory
           sound.unloadAsync();
         }
       };
@@ -88,6 +63,12 @@ export default function Miller({ navigation }) {
         const recording = new Audio.Recording();
         await recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
         setRecording(recording);
+        recording.setOnRecordingStatusUpdate((status) => {
+          console.log(status);
+          if(status.peakPower > -20 && !isSoundDetected) {
+            setIsSoundDetected(true)
+          }
+        });
         await recording.startAsync();
         setTimeout(() => {
           stopRecording();
@@ -103,7 +84,7 @@ export default function Miller({ navigation }) {
       const uri = recording.getURI();
       const { sound } = await recording.createNewLoadedSoundAsync();
       setSound(sound);
-      detectSound(sound);
+      detectSound();
     };
   
     const detectSound = async (sound) => {
@@ -111,6 +92,7 @@ export default function Miller({ navigation }) {
       if (status.isLoaded) {
         sound.setIsLoopingAsync(true);
         sound.playAsync();
+        handleSquareRotation()
         sound.setOnPlaybackStatusUpdate((status) => {
           if (status.didJustFinish) {
             setIsSoundDetected(true);
@@ -127,23 +109,18 @@ export default function Miller({ navigation }) {
     };
   
     return (
-      <View>
-      
-        <TouchableOpacity onPress={startRecording}>
-        
-<ImageBackground source={require('./../assets/miller.png')} resizeMode="cover" style={styles.image}>
-{timer > 0 && <Text>{timer} seconds left</Text>}
-        {timer === 0 && pressHandler()}
-            <Spin
+      <View onLayout={startRecording}>
+        <ImageBackground source={require('./../assets/miller.png')} resizeMode="cover" style={styles.image}>
+          {timer > 0 && <Text>{timer} seconds left</Text>}
+          {timer === 0 && pressHandler()}
+          <Spin
             style={{
               marginTop: 250,
               marginLeft: 60,
               transform: [{ rotate: `${rotation}deg` }]
             }}
             onLayout={handleSquareRotation}></Spin>
-            
            </ImageBackground>
-        </TouchableOpacity>
       </View>
     );
   }
